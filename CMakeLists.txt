@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.12)
+project(main)
+set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -fsanitize=address")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+file(GLOB SOURCES "src/*.c")
+include_directories(src/lib)
+add_executable(main ${SOURCES})
