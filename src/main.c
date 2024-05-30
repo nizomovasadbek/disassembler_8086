@@ -1,8 +1,9 @@
 #include <stdio.h>
+#include "lib/instruction.h"
 
-int main(int argc, char* argv[]) {
+int main(void) {
 
-    printf("Hello world\n");
+    disassemble(32);
 
     return 0;
 }

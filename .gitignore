@@ -1,7 +1,6 @@
 build/
 debug/
 target/
-test/
 .test
 .oracle
 .DS_Store
