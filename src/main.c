@@ -3,7 +3,7 @@
 
 int main(void) {
 
-    disassemble(32);
+    printf("%d\n", SGMT_REG);
 
     return 0;
 }

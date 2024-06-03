@@ -20,6 +20,8 @@ typedef enum {
     PUSH_REG =          0b01010000, // PUSH register
     SGMT_REG =          0b00011110, // Segment register 0b000(reg)110 真ん中のregは必ず1です
 // ---------------------------------------------
+
+// POP INSTRUCTION
 } IST;
 
 
