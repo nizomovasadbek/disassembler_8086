@@ -1,9 +1,14 @@
 #include <stdio.h>
 #include "lib/instruction.h"
 
-int main(void) {
+int main(int argc, char* argv[]) {
 
-    printf("%d\n", SGMT_REG);
+    if(argc != 2) {
+        printf("Error syntax, ./<app_name> <binary_file>\n");
+        return -1;
+    }
+
+    (void) disassemble(0b1000101101101011);
 
     return 0;
 }

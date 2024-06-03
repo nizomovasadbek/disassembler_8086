@@ -18,17 +18,21 @@ typedef enum {
 // PUSH INSTRUCTION
     PUSH_REG_MEM =      0b11111111, // PUSH register/memory
     PUSH_REG =          0b01010000, // PUSH register
-    SGMT_REG =          0b00011110, // Segment register 0b000(reg)110 真ん中のregは必ず1です
+    PUSH_SGMT_REG =     0b00000110, // Segment register 0b000(reg)110 真ん中のregは必ず0です
 // ---------------------------------------------
 
 // POP INSTRUCTION
+    POP_REG_MEM =       10001111,
+    POP_REGISTER =      01011,
+    POP_SGMT_REG =      000111111
 } IST;
 
 
 typedef enum {
     NONE,
     MOV,
-    PUSH
+    PUSH,
+    POP
 } Type;
 
 typedef struct {

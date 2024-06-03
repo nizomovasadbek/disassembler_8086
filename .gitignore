@@ -4,3 +4,4 @@ target/
 .test
 .oracle
 .DS_Store
+.vscode/
