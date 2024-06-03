@@ -34,21 +34,6 @@ typedef struct {
     Type type;
 } Instruction;
 
-Instruction table[] = { // Instruction Set Table
-    {.instc = MOV_REGISTER, .type = MOV},
-    {MOV_IM_REG_MEM, MOV},
-    {MOV_IM_REGISTER, MOV},
-    {MEM_TO_ACC, MOV},
-    {ACC_TO_MEM, MOV},
-    {MOV_TO_SR, MOV},
-    {SR_TO_MEMREG, MOV},
-    {PUSH_REG_MEM, PUSH},
-    {PUSH_REG, PUSH},
-    {SGMT_REG, PUSH}
-};
-
-#define TABLE_SIZE sizeof(table)/sizeof(Instruction)
-
 uint32_t disassemble(uint32_t);
 
 #endif
