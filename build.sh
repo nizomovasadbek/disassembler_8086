@@ -1,1 +1,1 @@
-gcc src/lib/instruction.c src/main.c -o build/main -Wall -Wextra -g
+gcc -DDEBUG=1 src/lib/instruction.c src/main.c -o build/main -Wall -Wextra -g
