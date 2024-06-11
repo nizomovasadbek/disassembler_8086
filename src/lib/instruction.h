@@ -38,6 +38,7 @@ typedef struct {
     IST instc;
     Type type;
     uint8_t skip;
+    size_t len;
 } Instruction;
 
 typedef struct {
@@ -51,7 +52,20 @@ typedef struct {
     uint8_t data;
     uint8_t data_ifw;
     bool immediate;
+    uint16_t config; // d,w,reg,rm,mod,data,src_mem,dst_mem 8 bits reserved.
 } Arch;
+
+#define D           0x01
+#define W           0x02
+#define REG         0x04
+#define RM          0x08
+#define MOD         0x10
+#define DATA        0x20
+#define SRC_MEM     0x40
+#define DST_MEM     0x80
+#define RESERVED1   0x100
+#define RESERVED2   0x200
+#define RESERVED3   0x400
 
 typedef struct {
     uint8_t reg;
@@ -91,5 +105,6 @@ uint32_t analyse(uint8_t*, size_t);
 char* build_string(Instruction*, Arch);
 void rm_modification(uint8_t* mod, uint8_t* rm);
 void my_itoa(uint16_t, char*);
+void pointer_wrapper(char[]);
 
 #endif

@@ -49,6 +49,7 @@ int main(int argc, char* argv[]) {
         fclose(file);
         return -1;
     }
+    
     (void) analyse(buffer, BUFFER_SIZE);
 
     fclose(file);

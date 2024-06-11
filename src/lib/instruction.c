@@ -6,16 +6,16 @@
 #include <string.h>
 
 Instruction table[] = { // Instruction Set Table
-    {.instc = MOV_REGISTER, .type = MOV, .skip = 2},
-    {MOV_IM_REG_MEM, MOV, 3},
-    {MOV_IM_REGISTER, MOV, 2},
-    {MEM_TO_ACC, MOV, 3},
-    {ACC_TO_MEM, MOV, 3},
-    {MOV_TO_SR, MOV, 2},
-    {SR_TO_MEMREG, MOV, 2},
-    {PUSH_REG_MEM, PUSH, 2},
-    {PUSH_REG, PUSH, 1},
-    {PUSH_SGMT_REG, PUSH, 1}
+    {.instc = MOV_REGISTER, .type = MOV, .skip = 2, .len = 6},
+    {MOV_IM_REG_MEM, MOV, 3, 7},
+    {MOV_IM_REGISTER, MOV, 2, 4},
+    {MEM_TO_ACC, MOV, 3, 7},
+    {ACC_TO_MEM, MOV, 3, 7},
+    {MOV_TO_SR, MOV, 2, 8},
+    {SR_TO_MEMREG, MOV, 2, 8},
+    {PUSH_REG_MEM, PUSH, 2, 8},
+    {PUSH_REG, PUSH, 1, 5},
+    {PUSH_SGMT_REG, PUSH, 1, 8}
 };
 
 char* instruction_sets[] = { "mov", "push", "pop" };
@@ -29,15 +29,36 @@ Instruction identify(uint8_t firstByte) {
     ins.instc = 0;
     ins.skip = 0;
     ins.type = NONE;
+    uint8_t mask = 0;
+    uint8_t mesh = 0;
 
     for(size_t i = 0; i < TABLE_SIZE; i++) {
-        if((firstByte & table[i].instc) == table[i].instc) {
+        mesh = firstByte;
+        mask = (2 << (table[i].len-1)) - 1;
+        mask <<= (8-table[i].len);
+        mesh &= mask;
+        if(mesh == table[i].instc) {
             ins = table[i];
             return ins;
         }
     }
 
     return ins;
+}
+
+void pointer_wrapper(char a[]) {
+    uint8_t zero_position = 0;
+    while(a[zero_position]) {
+        zero_position++;
+    }
+    for(uint8_t i = zero_position; i > 0; i--) {
+        a[zero_position+1] = a[zero_position];
+    }
+
+    a[0] = '[';
+    a[zero_position+1] = ']';
+    a[zero_position+2] = 0;
+    
 }
 
 uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
@@ -53,8 +74,9 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
     Arch a;
 
     while(position < BUFFER_SIZE) {
-        printf("%zX\t", position);
+        memset(&a, 0, sizeof(Arch)); // clear structure every cycle
         delta = 0;
+        ins = identify(buffer[position]);
         switch(ins.instc) {
             case MOV_REGISTER:
 
@@ -62,10 +84,12 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
                 a.w = !!a.w;
                 a.d = buffer[position] & 0x02;
                 a.d = !!a.d;
-                a.immediate = false;
                 a.mod = (buffer[position+1] >> 6) & 0x03;
                 a.reg = (buffer[position+1] >> 3) & 0x07;
                 a.rm = buffer[position+1] & 0x07;
+                a.immediate = false;
+
+                a.config |= W | D | MOD | REG | RM;
 
                 instruction_string = build_string(&ins, a);
                 printf("%s\n", instruction_string);
@@ -78,7 +102,6 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
 
                 a.w = buffer[position] & 0x01;
                 a.w = !!a.w;
-                a.d = 0;
                 a.immediate = true;
                 a.mod = (buffer[position+1] >> 6) & 0x03;
                 a.rm = buffer[position+1] & 0x07;
@@ -87,6 +110,7 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
                     a.data_ifw = buffer[position+3];
                     delta = 1;
                 }
+                a.config |= W | D | MOD | RM | DATA;
 
                 instruction_string = build_string(&ins, a);
                 printf("%s\n", instruction_string);
@@ -94,6 +118,26 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
                 free(instruction_string);
 
                 break;
+
+            case MOV_IM_REGISTER:
+
+                a.w = buffer[position] & 0x08;
+                a.w = !!a.w;
+                a.reg = buffer[position] & 0x07;
+                a.data = buffer[position+1];
+                a.immediate = true;
+                if(a.w) {
+                    a.data_ifw = buffer[position+2];
+                    delta = 1;
+                }
+                a.config |= W | D | REG | DATA;
+
+                instruction_string = build_string(&ins, a);
+                printf("%s\n", instruction_string);
+
+                free(instruction_string);
+                break;
+
             default:
                 delta = 1;
                 break;
@@ -109,24 +153,28 @@ char* build_string(Instruction* ins, Arch arch) {
     
     EA ea;
 
+    char source[15]; memset(source, 0, 15);
+    char destination[15]; memset(destination, 0, 15);
+
     char* result = (char*) malloc(40);
-    char rm[15];
-    char reg[10];
-    char disp[10];
+    char rm[15]; memset(rm, 0, 15);
+    char reg[10]; memset(reg, 0, 10);
+    char disp[10]; memset(disp, 0, 10);
 
-    if(!arch.immediate)
+    
+    if(arch.config & REG)
         sprintf(reg, "%s", (arch.w)?_16bit_reg[arch.reg]:_8bit_reg[arch.reg]);
-    else {
 
-        if(arch.w) {
-            uint16_t flow = arch.data_ifw;
-            flow <<= 8;
-            flow |= arch.data;
-            sprintf(reg, "0x%X", flow);
-        } else {
-            sprintf(reg, "0x%X", arch.data);
-        }
+    if(arch.w && arch.config & DATA) {
+        uint16_t flow = arch.data_ifw;
+        flow <<= 8;
+        flow |= arch.data;
+        sprintf(source, "0x%X", flow);
+    } else {
+        sprintf(source, "0x%X", arch.data);
     }
+
+    if(arch.config & MOD)
     switch(arch.mod) {
         case 0:
 
@@ -157,6 +205,7 @@ char* build_string(Instruction* ins, Arch arch) {
 
     if(arch.mod != 3) 
     // if mod = 3, then R/M is same as REG, so there is no need to build effective address.
+    if(arch.config & RM)
     switch(arch.rm) {
         case 0:
 
@@ -269,10 +318,36 @@ char* build_string(Instruction* ins, Arch arch) {
             break;
     }
 
-    if(arch.d) {
-        sprintf(result, "%s %s, %s", instruction_sets[ins->type], reg, rm);
+
+    if(arch.config & DATA) {
+        if(arch.config & RM) {
+            strcpy(destination, rm);
+        } else if(arch.config & REG) {
+            strcpy(destination, reg);
+        }
     } else {
-        sprintf(result, "%s %s, %s", instruction_sets[ins->type], rm, reg);
+        strcpy(destination, rm);
+        strcpy(source, reg);
+    }
+
+    if(arch.config & DST_MEM) {
+        pointer_wrapper(destination);
+    }
+
+    switch(ins->type) {
+        
+        case MOV:
+            if(arch.d) {
+                sprintf(result, "%s %s, %s", instruction_sets[ins->type], source, destination);
+            } else {
+                sprintf(result, "%s %s, %s", instruction_sets[ins->type], destination, source);
+            }
+
+            break;
+
+        default:
+            sprintf(result, "");
+            break;
     }
     
     return result;
