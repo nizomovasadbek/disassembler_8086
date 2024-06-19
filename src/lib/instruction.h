@@ -51,6 +51,8 @@ typedef struct {
     uint8_t disphigh;
     uint8_t data;
     uint8_t data_ifw;
+    uint8_t addrlow;
+    uint8_t addrhigh;
     bool immediate;
     uint16_t config; // d,w,reg,rm,mod,data,src_mem,dst_mem 8 bits reserved.
 } Arch;
@@ -63,7 +65,7 @@ typedef struct {
 #define DATA        0x20
 #define SRC_MEM     0x40
 #define DST_MEM     0x80
-#define RESERVED1   0x100
+#define ADDR   0x100
 #define RESERVED2   0x200
 #define RESERVED3   0x400
 

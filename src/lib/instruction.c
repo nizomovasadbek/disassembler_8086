@@ -138,6 +138,47 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
                 free(instruction_string);
                 break;
 
+            case MEM_TO_ACC:
+
+                a.w = buffer[position] & 0x01;
+                a.addrlow = buffer[position+1];
+                a.addrhigh = buffer[position+2];
+
+                if(a.w) {
+                    a.reg = AL;
+                } else {
+                    a.reg = AX;
+                }
+                a.d = 1;
+                
+                a.config |= W | ADDR | REG | D;
+
+                instruction_string = build_string(&ins, a);
+                printf("%s\n", instruction_string);
+
+                free(instruction_string);
+                break;
+
+            case ACC_TO_MEM:
+
+                a.w = buffer[position] & 0x01;
+                a.addrlow = buffer[position+1];
+                a.addrhigh = buffer[position+2];
+
+                if(a.w) {
+                    a.reg = AL;
+                } else {
+                    a.reg = AX;
+                }
+
+                a.config |= W | ADDR | REG;
+
+                instruction_string = build_string(&ins, a);
+                printf("%s\n", instruction_string);
+
+                free(instruction_string);
+                break;
+
             default:
                 delta = 1;
                 break;
@@ -164,6 +205,13 @@ char* build_string(Instruction* ins, Arch arch) {
     
     if(arch.config & REG)
         sprintf(reg, "%s", (arch.w)?_16bit_reg[arch.reg]:_8bit_reg[arch.reg]);
+
+    if(arch.config & ADDR) {
+        uint16_t addr = arch.addrhigh;
+        addr <<= 8;
+        addr |= arch.addrlow;
+        sprintf(rm, "[0x%X]", addr);
+    }
 
     if(arch.w && arch.config & DATA) {
         uint16_t flow = arch.data_ifw;
