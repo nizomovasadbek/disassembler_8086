@@ -21,7 +21,7 @@ Instruction table[] = { // Instruction Set Table
 
 char* instruction_sets[] = { "mov", "push", "pop", "add" };
 char* _16bit_reg[] = { "ax", "cx", "dx", "bx", "sp", "bp", "si", "di" };
-char* _8bit_reg[] = { "al", "cl", "dl", "bl", "ah", "ch", "dh", "bh", "es", "cs", "ss", "ds" };
+char* _8bit_reg[] = { "al", "cl", "dl", "bl", "ah", "ch", "dh", "bh" };
 char* _segment_reg[] = { "es", "cs", "ss", "ds" };
 
 #define TABLE_SIZE sizeof(table)/sizeof(Instruction)
@@ -191,11 +191,22 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
 
                 break;
 
+
+            // ADD Instruction
             case ADD_REGMEM_REG:
 
                 a.d = buffer[position] & 0x02;
                 a.d = !!a.d;
                 a.w = buffer[position] & 0x01;
+
+                a.mod = (buffer[position+1] & 0xC0) >> 6;
+                a.reg = (buffer[position+1] & 0x38) >> 3;
+                a.rm = buffer[position+1] & 0x07;
+
+                a.config |= W | D | MOD | REG | RM;
+
+                instruction_string = build_string(&ins, a);
+                printf("%s\n", instruction_string);
 
                 break;
 
@@ -408,6 +419,7 @@ char* build_string(Instruction* ins, Arch arch) {
 
     switch(ins->type) {
         
+        case ADD:
         case MOV:
             if(arch.d) {
                 sprintf(result, "%s %s, %s", instruction_sets[ins->type], source, destination);

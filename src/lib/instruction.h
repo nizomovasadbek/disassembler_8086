@@ -104,10 +104,10 @@ typedef struct {
 #define DH 6
 #define BH 7
 
-#define ES 0
-#define CS 1
-#define SS 2
-#define DS 3
+#define ES 8
+#define CS 9
+#define SS 10
+#define DS 11
 
 Instruction identify(uint8_t firstByte);
 uint32_t analyse(uint8_t*, size_t);
