@@ -33,10 +33,6 @@ int main(int argc, char* argv[]) {
     #ifdef DEBUG
     printf("Reading %lu bytes\n", BUFFER_SIZE);
     #endif
-    
-    for(size_t i = 0; i < BUFFER_SIZE; i++) {
-        
-    }
 
     size_t n = 0;
     size_t bytesRead = 0;

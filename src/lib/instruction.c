@@ -15,12 +15,14 @@ Instruction table[] = { // Instruction Set Table
     {SR_TO_MEMREG, MOV, 2, 8},
     {PUSH_REG_MEM, PUSH, 2, 8},
     {PUSH_REG, PUSH, 1, 5},
-    {PUSH_SGMT_REG, PUSH, 1, 8}
+    {PUSH_SGMT_REG, PUSH, 1, 8},
+    {ADD_REGMEM_REG, ADD, 2, 6}
 };
 
-char* instruction_sets[] = { "mov", "push", "pop" };
+char* instruction_sets[] = { "mov", "push", "pop", "add" };
 char* _16bit_reg[] = { "ax", "cx", "dx", "bx", "sp", "bp", "si", "di" };
 char* _8bit_reg[] = { "al", "cl", "dl", "bl", "ah", "ch", "dh", "bh", "es", "cs", "ss", "ds" };
+char* _segment_reg[] = { "es", "cs", "ss", "ds" };
 
 #define TABLE_SIZE sizeof(table)/sizeof(Instruction)
 
@@ -144,11 +146,7 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
                 a.addrlow = buffer[position+1];
                 a.addrhigh = buffer[position+2];
 
-                if(a.w) {
-                    a.reg = AL;
-                } else {
-                    a.reg = AX;
-                }
+                a.reg = 0;
                 a.d = 1;
                 
                 a.config |= W | ADDR | REG | D;
@@ -165,11 +163,7 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
                 a.addrlow = buffer[position+1];
                 a.addrhigh = buffer[position+2];
 
-                if(a.w) {
-                    a.reg = AL;
-                } else {
-                    a.reg = AX;
-                }
+                a.reg = 0;
 
                 a.config |= W | ADDR | REG;
 
@@ -177,6 +171,32 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
                 printf("%s\n", instruction_string);
 
                 free(instruction_string);
+                break;
+
+            case MOV_TO_SR:
+                a.d = 1;
+
+            case SR_TO_MEMREG:
+
+                a.w = 1;
+                a.mod = (buffer[position+1] & 0xC0) >> 6;
+                a.reg = (buffer[position+1] & 0x18) >> 3;
+                a.rm = buffer[position+1] & 0b111;
+                a.segment = true;
+
+                a.config |= MOD | REG | RM;
+
+                instruction_string = build_string(&ins, a);
+                printf("%s\n", instruction_string);
+
+                break;
+
+            case ADD_REGMEM_REG:
+
+                a.d = buffer[position] & 0x02;
+                a.d = !!a.d;
+                a.w = buffer[position] & 0x01;
+
                 break;
 
             default:
@@ -203,8 +223,12 @@ char* build_string(Instruction* ins, Arch arch) {
     char disp[10]; memset(disp, 0, 10);
 
     
-    if(arch.config & REG)
-        sprintf(reg, "%s", (arch.w)?_16bit_reg[arch.reg]:_8bit_reg[arch.reg]);
+    if(arch.config & REG){
+        if(arch.segment) 
+            sprintf(reg, "%s", _segment_reg[arch.reg]);
+        else
+            sprintf(reg, "%s", (arch.w)?_16bit_reg[arch.reg]:_8bit_reg[arch.reg]);
+    }
 
     if(arch.config & ADDR) {
         uint16_t addr = arch.addrhigh;
