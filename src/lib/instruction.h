@@ -49,6 +49,7 @@ typedef struct {
 typedef struct {
     uint8_t d;
     uint8_t w;
+    uint16_t sw;
     uint8_t reg;
     uint8_t rm;
     uint8_t mod;

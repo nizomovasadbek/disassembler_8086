@@ -16,13 +16,16 @@ Instruction table[] = { // Instruction Set Table
     {PUSH_REG_MEM, PUSH, 2, 8},
     {PUSH_REG, PUSH, 1, 5},
     {PUSH_SGMT_REG, PUSH, 1, 8},
-    {ADD_REGMEM_REG, ADD, 2, 6}
+    {ADD_REGMEM_REG, ADD, 2, 6},
+    {ADD_IMDT_REG, ADD, 3, 6}
 };
 
 char* instruction_sets[] = { "mov", "push", "pop", "add" };
 char* _16bit_reg[] = { "ax", "cx", "dx", "bx", "sp", "bp", "si", "di" };
 char* _8bit_reg[] = { "al", "cl", "dl", "bl", "ah", "ch", "dh", "bh" };
 char* _segment_reg[] = { "es", "cs", "ss", "ds" };
+
+uint64_t ip = 0; // instruction pointer;
 
 #define TABLE_SIZE sizeof(table)/sizeof(Instruction)
 
@@ -76,6 +79,7 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
     Arch a;
 
     while(position < BUFFER_SIZE) {
+        printf("0x%04zX\t", position);
         memset(&a, 0, sizeof(Arch)); // clear structure every cycle
         delta = 0;
         ins = identify(buffer[position]);
@@ -204,6 +208,25 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
                 a.rm = buffer[position+1] & 0x07;
 
                 a.config |= W | D | MOD | REG | RM;
+
+                instruction_string = build_string(&ins, a);
+                printf("%s\n", instruction_string);
+
+                break;
+
+            case ADD_IMDT_REG:
+
+                a.sw = buffer[position] & 0x03;
+                a.mod = (buffer[position+1] & 0xC0) >> 6;
+                a.rm = buffer[position+1] & 0x07;
+                a.data = buffer[position+2];
+
+                if(a.sw == 1) {
+                    a.data_ifw = buffer[position+3];
+                    delta = 1;
+                }
+
+                a.config |= MOD | RM | DATA;
 
                 instruction_string = build_string(&ins, a);
                 printf("%s\n", instruction_string);
