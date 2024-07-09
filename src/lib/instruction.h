@@ -36,6 +36,10 @@ typedef enum {
     XCHG_REGMEM_REG =   0b10000110, // Exchange register/memory with register
     XCHG_ACCUMUL_REG =  0b10010000, //Exchange register with accumulator
 
+// ---------------------------------------------
+
+    LONG_JUMP =         0b11101001, // Unconditional jump
+
 } IST;
 
 
@@ -45,6 +49,7 @@ typedef enum {
     POP,
     ADD,
     XCHG,
+    JMP,
 
 
     NONE

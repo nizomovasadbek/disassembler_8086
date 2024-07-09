@@ -27,10 +27,12 @@ Instruction table[] = { // Instruction Set Table
     {ADD_IMDT_ACCUMUL, ADD, 2, 7},
 
     {XCHG_REGMEM_REG, XCHG, 2, 7},
-    {XCHG_ACCUMUL_REG, XCHG, 1, 5}
+    {XCHG_ACCUMUL_REG, XCHG, 1, 5},
+
+    {LONG_JUMP, JMP, 3, 8},
 };
 
-char* instruction_sets[] = { "mov", "push", "pop", "add", "xchg" };
+char* instruction_sets[] = { "mov", "push", "pop", "add", "xchg", "jmp" };
 char* _16bit_reg[] = { "ax", "cx", "dx", "bx", "sp", "bp", "si", "di" };
 char* _8bit_reg[] = { "al", "cl", "dl", "bl", "ah", "ch", "dh", "bh" };
 char* _segment_reg[] = { "es", "cs", "ss", "ds" };
@@ -389,12 +391,24 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
                 free(instruction_string);
                 break;
 
+            case LONG_JUMP:
+
+                a.displow = buffer[position+1];
+                a.disphigh = buffer[position+2];
+
+                instruction_string = build_string(&ins, a);
+                printf("%s\n", instruction_string);
+
+                free(instruction_string);
+                break;
+
             default:
                 delta = 1;
                 break;
         }
 
         position += ins.skip + delta;
+        ip = position;
     }
     
     return 0;
@@ -601,6 +615,25 @@ char* build_string(Instruction* ins, Arch arch) {
         pointer_wrapper(destination);
     }
 
+    uint16_t jumping_addr = 0x00;
+    if(ins->type == JMP) {
+        switch(ins->instc) {
+            case LONG_JUMP:
+
+                jumping_addr = arch.disphigh;
+                jumping_addr <<= 8;
+                jumping_addr |= arch.displow;
+
+                jumping_addr = ip + ins->skip + jumping_addr;
+
+                sprintf(destination, "0x%04X", jumping_addr);
+
+                break;
+            default:
+                break;
+        }
+    }
+
     switch(ins->type) {
         
         case XCHG:
@@ -621,6 +654,13 @@ char* build_string(Instruction* ins, Arch arch) {
                 sprintf(result, "%s %s", instruction_sets[ins->type], destination);
             else
                 sprintf(result, "%s %s", instruction_sets[ins->type], source);
+
+            break;
+
+        case JMP:
+            #define SHORT_JUMP 43 //has to be removed
+            sprintf(result, "%s%s %s", instruction_sets[ins->type], 
+                (ins->instc==SHORT_JUMP)?" short":"", destination);
 
             break;
 
