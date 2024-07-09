@@ -31,6 +31,11 @@ typedef enum {
     ADD_REGMEM_REG =    0b00000000, // Add reg/mem with register
     ADD_IMDT_REG =      0b10000000, // Immeadiate to register
     ADD_IMDT_ACCUMUL =  0b00000100, // Immeadiate to accumulator
+// ---------------------------------------------
+
+    XCHG_REGMEM_REG =   0b10000110, // Exchange register/memory with register
+    XCHG_ACCUMUL_REG =  0b10010000, //Exchange register with accumulator
+
 } IST;
 
 
@@ -39,6 +44,7 @@ typedef enum {
     PUSH,
     POP,
     ADD,
+    XCHG,
 
 
     NONE
