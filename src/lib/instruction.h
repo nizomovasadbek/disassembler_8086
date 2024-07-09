@@ -73,7 +73,7 @@ typedef struct {
 #define SRC_MEM     0x40
 #define DST_MEM     0x80
 #define ADDR        0x100
-#define RESERVED2   0x200
+#define SW          0x200
 #define RESERVED3   0x400
 
 typedef struct {

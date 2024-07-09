@@ -13,11 +13,14 @@ Instruction table[] = { // Instruction Set Table
     {ACC_TO_MEM, MOV, 3, 7},
     {MOV_TO_SR, MOV, 2, 8},
     {SR_TO_MEMREG, MOV, 2, 8},
+
     {PUSH_REG_MEM, PUSH, 2, 8},
     {PUSH_REG, PUSH, 1, 5},
     {PUSH_SGMT_REG, PUSH, 1, 8},
+
     {ADD_REGMEM_REG, ADD, 2, 6},
-    {ADD_IMDT_REG, ADD, 3, 6}
+    {ADD_IMDT_REG, ADD, 3, 6},
+    {ADD_IMDT_ACCUMUL, ADD, 2, 7}
 };
 
 char* instruction_sets[] = { "mov", "push", "pop", "add" };
@@ -193,6 +196,7 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
                 instruction_string = build_string(&ins, a);
                 printf("%s\n", instruction_string);
 
+                free(instruction_string);
                 break;
 
 
@@ -212,6 +216,7 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
                 instruction_string = build_string(&ins, a);
                 printf("%s\n", instruction_string);
 
+                free(instruction_string);
                 break;
 
             case ADD_IMDT_REG:
@@ -224,14 +229,35 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
                 if(a.sw == 1) {
                     a.w = 1;
                     a.data_ifw = buffer[position+3];
-                    delta = 1;
+                    delta = 1; //16 bit
                 }
 
-                a.config |= MOD | RM | DATA | W;
+                a.config |= MOD | RM | DATA | SW;
 
                 instruction_string = build_string(&ins, a);
                 printf("%s\n", instruction_string);
 
+                free(instruction_string);
+                break;
+
+            case ADD_IMDT_ACCUMUL:
+
+                a.w = buffer[position] & 0x01;
+                a.data = buffer[position+1];
+                a.reg = 0;
+
+                if(a.w) {
+                    a.data_ifw = buffer[position+2];
+                    delta = 1;
+                    a.config |= W;
+                }
+
+                a.config |= REG | DATA;
+
+                instruction_string = build_string(&ins, a);
+                printf("%s\n", instruction_string);
+
+                free(instruction_string);
                 break;
 
             default:
@@ -276,10 +302,15 @@ char* build_string(Instruction* ins, Arch arch) {
         uint16_t flow = arch.data_ifw;
         flow <<= 8;
         flow |= arch.data;
+
         sprintf(source, "0x%X", flow);
     } else {
         sprintf(source, "0x%X", arch.data);
     }
+
+    // if(arch.sw == 3 && arch.config & SW) {
+    //     sprintf(source, "%d", (int8_t) arch.data);
+    // } uncomment for decimal representing only
 
     if(arch.config & MOD)
     switch(arch.mod) {
