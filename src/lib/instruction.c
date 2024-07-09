@@ -222,11 +222,12 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
                 a.data = buffer[position+2];
 
                 if(a.sw == 1) {
+                    a.w = 1;
                     a.data_ifw = buffer[position+3];
                     delta = 1;
                 }
 
-                a.config |= MOD | RM | DATA;
+                a.config |= MOD | RM | DATA | W;
 
                 instruction_string = build_string(&ins, a);
                 printf("%s\n", instruction_string);
