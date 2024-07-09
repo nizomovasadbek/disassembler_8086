@@ -260,6 +260,19 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
                 free(instruction_string);
                 break;
 
+            case PUSH_REG_MEM:
+
+                a.mod = (buffer[position+1] & 0xC0) >> 6;
+                a.rm = buffer[position+1] & 0x07;
+
+                a.config |= MOD | RM;
+
+                instruction_string = build_string(&ins, a);
+                printf("%s\n", instruction_string);
+
+                free(instruction_string);
+                break;
+
             default:
                 delta = 1;
                 break;
@@ -481,6 +494,12 @@ char* build_string(Instruction* ins, Arch arch) {
             } else {
                 sprintf(result, "%s %s, %s", instruction_sets[ins->type], destination, source);
             }
+
+            break;
+
+        case PUSH:
+
+            sprintf(result, "%s %s", instruction_sets[ins->type], destination);
 
             break;
 
