@@ -273,6 +273,19 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
                 free(instruction_string);
                 break;
 
+            case PUSH_REG:
+
+                a.reg = buffer[position] & 0x07;
+                a.w = 1;
+
+                a.config |= REG;
+
+                instruction_string = build_string(&ins, a);
+                printf("%s\n", instruction_string);
+
+                free(instruction_string);
+                break;
+
             default:
                 delta = 1;
                 break;
@@ -298,7 +311,7 @@ char* build_string(Instruction* ins, Arch arch) {
 
     
     if(arch.config & REG){
-        if(arch.segment) 
+        if(arch.segment)
             sprintf(reg, "%s", _segment_reg[arch.reg]);
         else
             sprintf(reg, "%s", (arch.w)?_16bit_reg[arch.reg]:_8bit_reg[arch.reg]);
@@ -499,7 +512,10 @@ char* build_string(Instruction* ins, Arch arch) {
 
         case PUSH:
 
-            sprintf(result, "%s %s", instruction_sets[ins->type], destination);
+            if(arch.config & RM)
+                sprintf(result, "%s %s", instruction_sets[ins->type], destination);
+            else if(arch.config & REG)
+                sprintf(result, "%s %s", instruction_sets[ins->type], source);
 
             break;
 
