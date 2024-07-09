@@ -55,21 +55,7 @@ uint8_t remove_center(uint8_t value, Instruction ins) {
     }
 }
 
-Instruction collision_check(Instruction ins, uint8_t firstByte, uint8_t secondByte) {
-    switch(ins.instc) {
-        case PUSH_REG_MEM:
-            if(((secondByte & 0x38) >> 3) == 6) {
-                return ins;
-            } else if(((secondByte & 0x38) >> 3) == 4) {
-                return table[20];
-            }
-
-        default:
-            break;
-    }
-}
-
-Instruction identify(uint8_t firstByte, uint8_t secondByte) {
+Instruction identify(uint8_t firstByte) {
     Instruction ins;
     ins.instc = 0;
     ins.skip = 0;
@@ -84,7 +70,6 @@ Instruction identify(uint8_t firstByte, uint8_t secondByte) {
         mesh &= mask;
         if(mesh == table[i].instc) {
             ins = table[i];
-            ins = collision_check(ins, firstByte, secondByte);
             return ins;
         }
     }
@@ -123,7 +108,7 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
         printf("0x%04zX\t", position);
         memset(&a, 0, sizeof(Arch)); // clear structure every cycle
         delta = 0;
-        ins = identify(buffer[position], buffer[position+1]);
+        ins = identify(buffer[position]);
         switch(ins.instc) {
             case MOV_REGISTER:
 
@@ -301,8 +286,13 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
             case PUSH_REG_MEM:
 
                 a.mod = (buffer[position+1] & 0xC0) >> 6;
+                a.reg = (buffer[position+1] & 0x38) >> 3;
+                if(a.reg == 4) {
+                    a.w = 1;
+                    ins = table[20];
+                }
+                a.reg = 0;
                 a.rm = buffer[position+1] & 0x07;
-                if(ins.type == JMP) a.w = 1;
 
                 a.config |= MOD | RM;
 
