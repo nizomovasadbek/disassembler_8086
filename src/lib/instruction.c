@@ -41,7 +41,7 @@ Instruction identify(uint8_t firstByte) {
     uint8_t mesh = 0;
 
     for(size_t i = 0; i < TABLE_SIZE; i++) {
-        mesh = firstByte;
+        mesh = firstByte & table[i].instc;
         mask = (2 << (table[i].len-1)) - 1;
         mask <<= (8-table[i].len);
         mesh &= mask;
@@ -73,7 +73,7 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
     size_t position = 0;
     uint8_t delta = 0;
 
-    Instruction ins = identify(buffer[position]);
+    Instruction ins;
     #ifdef DEBUG
     printf("First opcode 0x%02X\n", ins.instc);
     #endif
@@ -277,6 +277,19 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
 
                 a.reg = buffer[position] & 0x07;
                 a.w = 1;
+
+                a.config |= REG;
+
+                instruction_string = build_string(&ins, a);
+                printf("%s\n", instruction_string);
+
+                free(instruction_string);
+                break;
+
+            case PUSH_SGMT_REG:
+
+                a.reg = (buffer[position] & 0x18) >> 3;
+                a.segment = true;
 
                 a.config |= REG;
 
