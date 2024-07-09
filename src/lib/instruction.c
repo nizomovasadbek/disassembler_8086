@@ -56,10 +56,18 @@ Instruction table[] = { // Instruction Set Table
 
     {INC_REGMEM, INC, 2, 7},
     {INC_REG, INC, 1, 5},
+
+    {ASCII_ADJUST, AAA, 1, 8}, //40
+    {DECIMAL_ADJUST, BAA, 1, 8},
+
+    {SUB_REGMEM_MEM, SUB, 2, 6},
+    {SUB_IMDT_REG, SUB, 3, 6},
+    {SUB_IMDT_ACCUMUL, SUB, 2, 7},
 };
 
 char* instruction_sets[] = { "mov", "push", "pop", "add", "xchg", "jmp", "in", "out", 
-    "xlatb", "lea", "lds", "les", "lahf", "sahf", "pushf", "popf", "adc", "inc" };
+    "xlatb", "lea", "lds", "les", "lahf", "sahf", "pushf", "popf", "adc", "inc", "aaa", "baa",
+    "sub" };
 char* _16bit_reg[] = { "ax", "cx", "dx", "bx", "sp", "bp", "si", "di" };
 char* _8bit_reg[] = { "al", "cl", "dl", "bl", "ah", "ch", "dh", "bh" };
 char* _segment_reg[] = { "es", "cs", "ss", "ds" };
@@ -136,6 +144,8 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
         ins = identify(buffer[position]);
         switch(ins.instc) {
 
+            case DECIMAL_ADJUST:
+            case ASCII_ADJUST:
             case PUSH_FLAGS:
             case POP_FLAGS:
             case LOAD_AH_FLAGS:
@@ -285,6 +295,10 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
                 a.reg = (buffer[position+1] & 0x38) >> 3;
                 if(a.reg == 2) {
                     ins = table[36];
+                    a.w = 1;
+                }
+                if(a.reg == 5) {
+                    ins = table[43];
                     a.w = 1;
                 }
                 a.reg = 0;
@@ -620,6 +634,40 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
                 free(instruction_string);
                 break;
 
+            case SUB_REGMEM_MEM:
+
+                a.d = buffer[position] & 0x02;
+                a.w = buffer[position] & 0x01;
+                a.d = !!a.d;
+                a.mod = (buffer[position+1] & 0xC0) >> 6;
+                a.reg = (buffer[position+1] & 0x38) >> 3;
+                a.rm = buffer[position+1] & 0x07;
+
+                a.config |= RM | MOD | REG;
+
+                instruction_string = build_string(&ins, a);
+                printf("%s\n", instruction_string);
+
+                free(instruction_string);
+                break;
+
+            case SUB_IMDT_ACCUMUL:
+
+                a.w = buffer[position] & 0x01;
+                a.data = buffer[position+1];
+                if(a.w) {
+                    a.data_ifw = buffer[position+2];
+                    delta = 1;
+                }
+
+                a.config |= REG | DATA;
+
+                instruction_string = build_string(&ins, a);
+                printf("%s\n", instruction_string);
+
+                free(instruction_string);
+                break;
+
             default:
                 delta = 1;
                 break;
@@ -888,6 +936,7 @@ char* build_string(Instruction* ins, Arch arch) {
         case IN:
         case XCHG:
         case ADD:
+        case SUB:
         case ADC:
         case MOV:
             if(arch.d) {

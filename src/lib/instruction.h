@@ -94,6 +94,17 @@ typedef enum {
     INC_REGMEM =        0b11111110, // Increment register/memory
     INC_REG =           0b01000000, // Increment register
 
+// ---------------------------------------------
+
+    ASCII_ADJUST =      0b00110111, // ASCII adjust for Add
+    DECIMAL_ADJUST =    0b00100111, // Decimal adjust for Add
+
+// ---------------------------------------------
+
+    SUB_REGMEM_MEM =    0b00101000, // Subtract register/memory from register
+    SUB_IMDT_REG =      0b10000000, // Subtract immidiate from memory
+    SUB_IMDT_ACCUMUL =  0b00101100, // Subtract immidiate from accumulator
+
 } IST;
 
 
@@ -116,6 +127,9 @@ typedef enum {
     POPF,
     ADC,
     INC,
+    AAA,
+    BAA,
+    SUB,
 
     NONE
 } Type;
