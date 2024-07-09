@@ -83,6 +83,12 @@ typedef enum {
     PUSH_FLAGS =        0b10011100, // Push flags
     POP_FLAGS =         0b10011101, // Pop flags
 
+// ---------------------------------------------
+
+    ADDC_REGMEM =       0b00010000, // Add to register/memory to register
+    ADDC_IMDT_REGMEM =  0b10000000, // Immidiate register to memory
+    ADDC_IMDT_ACCUMUL = 0b00010100, // Immidiate to accumulator
+
 } IST;
 
 
@@ -103,6 +109,7 @@ typedef enum {
     SAHF,
     PUSHF,
     POPF,
+    ADC,
 
     NONE
 } Type;
