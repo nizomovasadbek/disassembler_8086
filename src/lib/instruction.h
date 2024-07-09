@@ -42,6 +42,12 @@ typedef enum {
     SHORT_JUMP =        0b11101011, // Unconditional short jump
     WITHIN_SEGMENT =    0b11111111, // Jump within a segment
     DRCT_INTRSGMT =     0b11101010, // Direct intersegment
+    INDRCT_INTRSGMT =   0b11111111, // indirect intersegment
+
+// ---------------------------------------------
+
+    IN_FIXED_PORT =     0b11100100, // In fixed port
+    IN_VAR_PORT =       0b11101100, // In variable port
 
 } IST;
 
@@ -53,6 +59,7 @@ typedef enum {
     ADD,
     XCHG,
     JMP,
+    IN,
 
 
     NONE
@@ -80,7 +87,7 @@ typedef struct {
     uint8_t addrhigh;
     bool immediate;
     bool segment;
-    uint16_t config; // d,w,reg,rm,mod,data,src_mem,dst_mem 8 bits reserved.
+    uint32_t config; // d,w,reg,rm,mod,data,src_mem,dst_mem 8 bits reserved.
 } Arch;
 
 #define D           0x01
@@ -94,6 +101,7 @@ typedef struct {
 #define ADDR        0x100
 #define SW          0x200
 #define DIRECT_INTERSEGMENT   0x400
+#define PORT        0x800
 
 typedef struct {
     uint8_t reg;

@@ -33,9 +33,13 @@ Instruction table[] = { // Instruction Set Table
     {SHORT_JUMP, JMP, 2, 8},
     {WITHIN_SEGMENT, JMP, 2, 8},
     {DRCT_INTRSGMT, JMP, 5, 8},
+    {INDRCT_INTRSGMT, JMP, 2, 8},
+
+    {IN_FIXED_PORT, IN, 2, 7},
+    {IN_VAR_PORT, IN, 1, 7},
 };
 
-char* instruction_sets[] = { "mov", "push", "pop", "add", "xchg", "jmp" };
+char* instruction_sets[] = { "mov", "push", "pop", "add", "xchg", "jmp", "in" };
 char* _16bit_reg[] = { "ax", "cx", "dx", "bx", "sp", "bp", "si", "di" };
 char* _8bit_reg[] = { "al", "cl", "dl", "bl", "ah", "ch", "dh", "bh" };
 char* _segment_reg[] = { "es", "cs", "ss", "ds" };
@@ -292,6 +296,9 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
                     a.w = 1;
                     ins = table[20];
                 }
+                if(a.reg == 5) {
+                    ins = table[22];
+                }
                 a.reg = 0;
                 a.rm = buffer[position+1] & 0x07;
 
@@ -429,6 +436,35 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
                 a.addrhigh = buffer[position+4];
 
                 a.config |= DIRECT_INTERSEGMENT;
+
+                instruction_string = build_string(&ins, a);
+                printf("%s\n", instruction_string);
+
+                free(instruction_string);
+                break;
+
+            case IN_FIXED_PORT:
+
+                a.w = buffer[position] & 0x01;
+                a.d = 1;
+                a.data = buffer[position + 1];
+
+                a.config |= PORT | REG;
+
+                instruction_string = build_string(&ins, a);
+                printf("%s\n", instruction_string);
+
+                free(instruction_string);
+                break;
+
+            case IN_VAR_PORT:
+
+                a.w = buffer[position] & 0x01;
+                a.mod = 3;
+                a.rm = 2;
+                a.reg = 0;
+
+                a.config |= RM | MOD | REG;
 
                 instruction_string = build_string(&ins, a);
                 printf("%s\n", instruction_string);
@@ -633,7 +669,6 @@ char* build_string(Instruction* ins, Arch arch) {
             break;
     }
 
-
     if(arch.config & DATA) {
         if(arch.config & RM) {
             strcpy(destination, rm);
@@ -647,6 +682,11 @@ char* build_string(Instruction* ins, Arch arch) {
 
     if(arch.config & DST_MEM) {
         pointer_wrapper(destination);
+    }
+
+    if(arch.config & PORT) {
+        sprintf(destination, "0x%02X", arch.data);
+        
     }
 
     uint16_t jumping_addr = 0x00;
@@ -693,6 +733,7 @@ char* build_string(Instruction* ins, Arch arch) {
 
     switch(ins->type) {
         
+        case IN:
         case XCHG:
         case ADD:
         case MOV:
