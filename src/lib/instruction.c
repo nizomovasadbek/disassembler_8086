@@ -18,6 +18,8 @@ Instruction table[] = { // Instruction Set Table
     {PUSH_REG, PUSH, 1, 5},
     {PUSH_SGMT_REG, PUSH, 1, 8},
 
+    {POP_REG_MEM, POP, 2, 8},
+
     {ADD_REGMEM_REG, ADD, 2, 6},
     {ADD_IMDT_REG, ADD, 3, 6},
     {ADD_IMDT_ACCUMUL, ADD, 2, 7}
@@ -32,6 +34,18 @@ uint64_t ip = 0; // instruction pointer;
 
 #define TABLE_SIZE sizeof(table)/sizeof(Instruction)
 
+uint8_t remove_center(uint8_t value, Instruction ins) {
+    uint8_t result = 0;
+    switch(ins.instc) {
+        case POP_SGMT_REG:
+        case PUSH_SGMT_REG:
+            result = value & 0xE7;
+            return result;
+        default:
+            return value;
+    }
+}
+
 Instruction identify(uint8_t firstByte) {
     Instruction ins;
     ins.instc = 0;
@@ -41,7 +55,7 @@ Instruction identify(uint8_t firstByte) {
     uint8_t mesh = 0;
 
     for(size_t i = 0; i < TABLE_SIZE; i++) {
-        mesh = firstByte & table[i].instc;
+        mesh = remove_center(firstByte, table[i]);
         mask = (2 << (table[i].len-1)) - 1;
         mask <<= (8-table[i].len);
         mesh &= mask;
@@ -75,7 +89,7 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
 
     Instruction ins;
     #ifdef DEBUG
-    printf("First opcode 0x%02X\n", ins.instc);
+    printf("First opcode 0x%02X\n", buffer[0]);
     #endif
 
     char* instruction_string;
@@ -523,11 +537,12 @@ char* build_string(Instruction* ins, Arch arch) {
 
             break;
 
+        case POP:
         case PUSH:
 
             if(arch.config & RM)
                 sprintf(result, "%s %s", instruction_sets[ins->type], destination);
-            else if(arch.config & REG)
+            else
                 sprintf(result, "%s %s", instruction_sets[ins->type], source);
 
             break;

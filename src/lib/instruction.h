@@ -23,6 +23,11 @@ typedef enum {
     PUSH_SGMT_REG =     0b00000110, // Segment register 0b000(reg)110 真ん中のregは必ず0です
 // ---------------------------------------------
 
+    POP_REG_MEM =       0b10001111, // POP register/memory (effective address)
+    POP_REG =           0b01011000, // POP register
+    POP_SGMT_REG =      0b00000111, // POP segment register (MIDDLE)
+// ---------------------------------------------
+
     ADD_REGMEM_REG =    0b00000000, // Add reg/mem with register
     ADD_IMDT_REG =      0b10000000, // Immeadiate to register
     ADD_IMDT_ACCUMUL =  0b00000100, // Immeadiate to accumulator
@@ -116,5 +121,6 @@ char* build_string(Instruction*, Arch);
 void rm_modification(uint8_t* mod, uint8_t* rm);
 void my_itoa(uint16_t, char*);
 void pointer_wrapper(char[]);
+uint8_t remove_center(uint8_t value, Instruction ins);
 
 #endif
