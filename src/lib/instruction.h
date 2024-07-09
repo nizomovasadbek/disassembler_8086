@@ -38,7 +38,8 @@ typedef enum {
 
 // ---------------------------------------------
 
-    LONG_JUMP =         0b11101001, // Unconditional jump
+    LONG_JUMP =         0b11101001, // Unconditional near jump
+    SHORT_JUMP =        0b11101011, // Unconditional short jump
 
 } IST;
 

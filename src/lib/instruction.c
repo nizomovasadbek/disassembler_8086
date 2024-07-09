@@ -30,6 +30,7 @@ Instruction table[] = { // Instruction Set Table
     {XCHG_ACCUMUL_REG, XCHG, 1, 5},
 
     {LONG_JUMP, JMP, 3, 8},
+    {SHORT_JUMP, JMP, 2, 8},
 };
 
 char* instruction_sets[] = { "mov", "push", "pop", "add", "xchg", "jmp" };
@@ -402,6 +403,16 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
                 free(instruction_string);
                 break;
 
+            case SHORT_JUMP:
+
+                a.displow = buffer[position+1];
+
+                instruction_string = build_string(&ins, a);
+                printf("%s\n", instruction_string);
+
+                free(instruction_string);
+                break;
+
             default:
                 delta = 1;
                 break;
@@ -629,6 +640,16 @@ char* build_string(Instruction* ins, Arch arch) {
                 sprintf(destination, "0x%04X", jumping_addr);
 
                 break;
+
+            case SHORT_JUMP:
+
+                jumping_addr = arch.displow;
+                jumping_addr = ip + ins->skip + (int16_t) jumping_addr;
+
+                sprintf(destination, "0x%02X", jumping_addr);
+
+                break;
+
             default:
                 break;
         }
@@ -658,7 +679,7 @@ char* build_string(Instruction* ins, Arch arch) {
             break;
 
         case JMP:
-            #define SHORT_JUMP 43 //has to be removed
+
             sprintf(result, "%s%s %s", instruction_sets[ins->type], 
                 (ins->instc==SHORT_JUMP)?" short":"", destination);
 
