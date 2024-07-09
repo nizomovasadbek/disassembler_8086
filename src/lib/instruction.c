@@ -19,6 +19,8 @@ Instruction table[] = { // Instruction Set Table
     {PUSH_SGMT_REG, PUSH, 1, 8},
 
     {POP_REG_MEM, POP, 2, 8},
+    {POP_REG, POP, 1, 5},
+    {POP_SGMT_REG, POP, 1, 8},
 
     {ADD_REGMEM_REG, ADD, 2, 6},
     {ADD_IMDT_REG, ADD, 3, 6},
@@ -301,6 +303,46 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
                 break;
 
             case PUSH_SGMT_REG:
+
+                a.reg = (buffer[position] & 0x18) >> 3;
+                a.segment = true;
+
+                a.config |= REG;
+
+                instruction_string = build_string(&ins, a);
+                printf("%s\n", instruction_string);
+
+                free(instruction_string);
+                break;
+
+            case POP_REG_MEM:
+
+                a.mod = (buffer[position+1] & 0xC0) >> 6;
+                a.rm = buffer[position+1] & 0x07;
+                a.w = 1;
+
+                a.config |= MOD | RM;
+
+                instruction_string = build_string(&ins, a);
+                printf("%s\n", instruction_string);
+
+                free(instruction_string);
+                break;
+
+            case POP_REG:
+
+                a.reg = buffer[position] & 0x07;
+                a.w = 1;
+
+                a.config |= REG;
+
+                instruction_string = build_string(&ins, a);
+                printf("%s\n", instruction_string);
+
+                free(instruction_string);
+                break;
+
+            case POP_SGMT_REG:
 
                 a.reg = (buffer[position] & 0x18) >> 3;
                 a.segment = true;
