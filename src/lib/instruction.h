@@ -40,6 +40,7 @@ typedef enum {
 
     LONG_JUMP =         0b11101001, // Unconditional near jump
     SHORT_JUMP =        0b11101011, // Unconditional short jump
+    WITHIN_SEGMENT =    0b11111111, // Jump within a segment
 
 } IST;
 
@@ -127,12 +128,13 @@ typedef struct {
 #define SS 10
 #define DS 11
 
-Instruction identify(uint8_t firstByte);
+Instruction identify(uint8_t firstByte, uint8_t secondByte);
 uint32_t analyse(uint8_t*, size_t);
 char* build_string(Instruction*, Arch);
 void rm_modification(uint8_t* mod, uint8_t* rm);
 void my_itoa(uint16_t, char*);
 void pointer_wrapper(char[]);
 uint8_t remove_center(uint8_t value, Instruction ins);
+Instruction collision_check(Instruction ins, uint8_t firstByte, uint8_t secondByte);
 
 #endif
