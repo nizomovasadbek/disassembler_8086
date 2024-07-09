@@ -105,6 +105,17 @@ typedef enum {
     SUB_IMDT_REG =      0b10000000, // Subtract immidiate from memory
     SUB_IMDT_ACCUMUL =  0b00101100, // Subtract immidiate from accumulator
 
+// ---------------------------------------------
+
+    SSB_REGMEM_MEM =    0b00011000, // Subtract with borrow
+    SSB_IMDT_REG =      0b10000000, // Subtract with borrow immidiate from register/memory
+    SSB_IMDT_ACCUMUL =  0b00011100, // Subtract with borrow immidiate from 
+
+// ---------------------------------------------
+
+    DEC_REGMEM =        0b11111110, // Decrement register memory
+    DEC_REG =           0b01001000, // decrement register
+
 } IST;
 
 
@@ -130,6 +141,8 @@ typedef enum {
     AAA,
     BAA,
     SUB,
+    SBB,
+    DEC,
 
     NONE
 } Type;
