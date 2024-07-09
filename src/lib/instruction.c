@@ -37,9 +37,12 @@ Instruction table[] = { // Instruction Set Table
 
     {IN_FIXED_PORT, IN, 2, 7},
     {IN_VAR_PORT, IN, 1, 7},
+
+    {OUT_FIXED_PORT, OUT, 2, 7},
+    {OUT_FIXED_PORT, OUT, 1, 7},
 };
 
-char* instruction_sets[] = { "mov", "push", "pop", "add", "xchg", "jmp", "in" };
+char* instruction_sets[] = { "mov", "push", "pop", "add", "xchg", "jmp", "in", "out" };
 char* _16bit_reg[] = { "ax", "cx", "dx", "bx", "sp", "bp", "si", "di" };
 char* _8bit_reg[] = { "al", "cl", "dl", "bl", "ah", "ch", "dh", "bh" };
 char* _segment_reg[] = { "es", "cs", "ss", "ds" };
@@ -461,6 +464,7 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
 
                 a.w = buffer[position] & 0x01;
                 a.mod = 3;
+                a.d = 1;
                 a.rm = 2;
                 a.reg = 0;
 
@@ -471,6 +475,37 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
 
                 free(instruction_string);
                 break;
+
+            case OUT_FIXED_PORT:
+
+                a.w = buffer[position] & 0x01;
+                a.d = 1;
+                a.data = buffer[position + 1];
+
+                a.config |= PORT | REG;
+
+                instruction_string = build_string(&ins, a);
+                printf("%s\n", instruction_string);
+
+                free(instruction_string);
+                break;
+
+            case OUT_VAR_PORT:
+
+                a.w = buffer[position] & 0x01;
+                a.mod = 3;
+                a.d = 1;
+                a.rm = 2;
+                a.reg = 0;
+
+                a.config |= RM | MOD | REG;
+
+                instruction_string = build_string(&ins, a);
+                printf("%s\n", instruction_string);
+
+                free(instruction_string);
+                break;
+            
 
             default:
                 delta = 1;
@@ -733,6 +768,7 @@ char* build_string(Instruction* ins, Arch arch) {
 
     switch(ins->type) {
         
+        case OUT:
         case IN:
         case XCHG:
         case ADD:

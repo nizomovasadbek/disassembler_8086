@@ -49,6 +49,11 @@ typedef enum {
     IN_FIXED_PORT =     0b11100100, // In fixed port
     IN_VAR_PORT =       0b11101100, // In variable port
 
+// ---------------------------------------------
+
+    OUT_FIXED_PORT =    0b11100110, // out fixed port
+    OUT_VAR_PORT =      0b11101110, // out variable port
+
 } IST;
 
 
@@ -60,6 +65,7 @@ typedef enum {
     XCHG,
     JMP,
     IN,
+    OUT,
 
 
     NONE
