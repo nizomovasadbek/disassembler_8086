@@ -89,6 +89,11 @@ typedef enum {
     ADDC_IMDT_REGMEM =  0b10000000, // Immidiate register to memory
     ADDC_IMDT_ACCUMUL = 0b00010100, // Immidiate to accumulator
 
+// ---------------------------------------------
+
+    INC_REGMEM =        0b11111110, // Increment register/memory
+    INC_REG =           0b01000000, // Increment register
+
 } IST;
 
 
@@ -110,6 +115,7 @@ typedef enum {
     PUSHF,
     POPF,
     ADC,
+    INC,
 
     NONE
 } Type;
