@@ -32,6 +32,7 @@ Instruction table[] = { // Instruction Set Table
     {LONG_JUMP, JMP, 3, 8},
     {SHORT_JUMP, JMP, 2, 8},
     {WITHIN_SEGMENT, JMP, 2, 8},
+    {DRCT_INTRSGMT, JMP, 5, 8},
 };
 
 char* instruction_sets[] = { "mov", "push", "pop", "add", "xchg", "jmp" };
@@ -420,6 +421,20 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
                 free(instruction_string);
                 break;
 
+            case DRCT_INTRSGMT:
+
+                a.displow = buffer[position+1];
+                a.disphigh = buffer[position+2];
+                a.addrlow = buffer[position+3];
+                a.addrhigh = buffer[position+4];
+
+                a.config |= DIRECT_INTERSEGMENT;
+
+                instruction_string = build_string(&ins, a);
+                printf("%s\n", instruction_string);
+
+                free(instruction_string);
+                break;
 
             default:
                 delta = 1;
@@ -635,6 +650,7 @@ char* build_string(Instruction* ins, Arch arch) {
     }
 
     uint16_t jumping_addr = 0x00;
+    uint16_t jumping_segment = 0x00;
     if(ins->type == JMP) {
         switch(ins->instc) {
             case LONG_JUMP:
@@ -655,6 +671,18 @@ char* build_string(Instruction* ins, Arch arch) {
                 jumping_addr = ip + ins->skip + (int16_t) jumping_addr;
 
                 sprintf(destination, "0x%02X", jumping_addr);
+
+                break;
+
+            case DRCT_INTRSGMT:
+
+                jumping_addr = arch.displow;
+                jumping_addr |= arch.disphigh << 8;
+
+                jumping_segment = arch.addrlow;
+                jumping_segment |= arch.addrhigh << 8;
+
+                sprintf(destination, "0x%04X:0x%04X", jumping_segment, jumping_addr);
 
                 break;
 

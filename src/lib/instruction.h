@@ -93,7 +93,7 @@ typedef struct {
 #define DST_MEM     0x80
 #define ADDR        0x100
 #define SW          0x200
-#define RESERVED3   0x400
+#define DIRECT_INTERSEGMENT   0x400
 
 typedef struct {
     uint8_t reg;
