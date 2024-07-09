@@ -40,9 +40,19 @@ Instruction table[] = { // Instruction Set Table
 
     {OUT_FIXED_PORT, OUT, 2, 7},
     {OUT_FIXED_PORT, OUT, 1, 7},
+
+    {BYTE_TO_AL, XLATB, 1, 8},
+    {LOAD_EA_TO_REG, LEA, 2, 8},
+    {LOAD_PTR_TO_DS, LDS, 2, 8},
+    {LOAD_PTR_TO_ES, LES, 2, 8},
+    {LOAD_AH_FLAGS, LAHF, 1, 8},
+    {SAVE_AH_FLAGS, SAHF, 1, 8},
+    {PUSH_FLAGS, PUSHF, 1, 8},
+    {POP_FLAGS, POPF, 1, 8},
 };
 
-char* instruction_sets[] = { "mov", "push", "pop", "add", "xchg", "jmp", "in", "out" };
+char* instruction_sets[] = { "mov", "push", "pop", "add", "xchg", "jmp", "in", "out", 
+    "xlatb", "lea", "lds", "les", "lahf", "sahf", "pushf", "popf" };
 char* _16bit_reg[] = { "ax", "cx", "dx", "bx", "sp", "bp", "si", "di" };
 char* _8bit_reg[] = { "al", "cl", "dl", "bl", "ah", "ch", "dh", "bh" };
 char* _segment_reg[] = { "es", "cs", "ss", "ds" };
@@ -118,6 +128,15 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
         delta = 0;
         ins = identify(buffer[position]);
         switch(ins.instc) {
+
+            case PUSH_FLAGS:
+            case POP_FLAGS:
+            case LOAD_AH_FLAGS:
+            case BYTE_TO_AL:
+            case SAVE_AH_FLAGS:
+                printf("%s\n", instruction_sets[ins.type]);
+                break;
+
             case MOV_REGISTER:
 
                 a.w = buffer[position] & 0x01;
@@ -506,6 +525,24 @@ uint32_t analyse(uint8_t* buffer, size_t BUFFER_SIZE) {
                 free(instruction_string);
                 break;
             
+            case LOAD_PTR_TO_ES:
+            case LOAD_PTR_TO_DS:
+            case LOAD_EA_TO_REG:
+
+                //mod reg rm
+                a.mod = (buffer[position+1] & 0xC0) >> 6;
+                a.reg = (buffer[position+1] & 0x38) >> 3;
+                a.rm = buffer[position+1] & 0x07;
+                a.w = 1;
+                a.d = 1;
+
+                a.config |= RM | REG | MOD;
+
+                instruction_string = build_string(&ins, a);
+                printf("%s\n", instruction_string);
+
+                free(instruction_string);
+                break;
 
             default:
                 delta = 1;
@@ -768,6 +805,9 @@ char* build_string(Instruction* ins, Arch arch) {
 
     switch(ins->type) {
         
+        case LES:
+        case LDS:
+        case LEA:
         case OUT:
         case IN:
         case XCHG:

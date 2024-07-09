@@ -54,6 +54,35 @@ typedef enum {
     OUT_FIXED_PORT =    0b11100110, // out fixed port
     OUT_VAR_PORT =      0b11101110, // out variable port
 
+// ---------------------------------------------
+
+    BYTE_TO_AL =        0b11010111, // Translate byte to Al
+
+// ---------------------------------------------
+
+    LOAD_EA_TO_REG =    0b10001101, // Load EA to register
+
+// ---------------------------------------------
+
+    LOAD_PTR_TO_DS =    0b11000101, // Load Pointer to ds
+
+// ---------------------------------------------
+
+    LOAD_PTR_TO_ES =    0b11000100, // Load Pointer to es
+
+// ---------------------------------------------
+
+    LOAD_AH_FLAGS =     0b10011111, // Load AH with flags
+
+// ---------------------------------------------
+
+    SAVE_AH_FLAGS =     0b10011110, // Save AH with flags
+
+// ---------------------------------------------
+
+    PUSH_FLAGS =        0b10011100, // Push flags
+    POP_FLAGS =         0b10011101, // Pop flags
+
 } IST;
 
 
@@ -66,7 +95,14 @@ typedef enum {
     JMP,
     IN,
     OUT,
-
+    XLATB,
+    LEA,
+    LDS,
+    LES,
+    LAHF,
+    SAHF,
+    PUSHF,
+    POPF,
 
     NONE
 } Type;
